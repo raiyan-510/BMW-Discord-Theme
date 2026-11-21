@@ -88,6 +88,91 @@
   --channeltextarea-background: rgba(6, 9, 18, 0.6);
 }
 
+/* Modern Discord tokens – keeps inputs, buttons and controls on-palette */
+:root,
+.theme-dark,
+.theme-darker,
+.theme-midnight,
+.theme-light {
+  --background-base-lowest: rgba(5, 7, 15, 0.9);
+  --background-base-lower: rgba(8, 11, 22, 0.88);
+  --background-base-low: rgba(10, 13, 24, 0.84);
+  --background-surface-high: rgba(16, 20, 36, 0.82);
+  --background-surface-higher: rgba(20, 25, 44, 0.84);
+  --background-surface-highest: rgba(24, 29, 50, 0.86);
+  --chat-background-default: rgba(10, 13, 24, 0.4);
+  --background-mod-subtle: rgba(255, 255, 255, 0.04);
+  --background-mod-normal: rgba(255, 255, 255, 0.06);
+  --background-mod-strong: rgba(255, 255, 255, 0.1);
+  --bg-overlay-1: rgba(8, 11, 22, 0.6);
+  --bg-overlay-2: rgba(10, 13, 24, 0.7);
+  --bg-overlay-3: rgba(12, 16, 28, 0.75);
+  --bg-overlay-4: rgba(14, 18, 32, 0.8);
+  --bg-overlay-5: rgba(16, 20, 36, 0.85);
+  --bg-overlay-6: rgba(18, 23, 40, 0.9);
+
+  --input-background: rgba(6, 9, 18, 0.6);
+  --input-background-default: rgba(6, 9, 18, 0.6);
+  --input-border-default: rgba(255, 255, 255, 0.12);
+  --input-border-hover: rgba(255, 255, 255, 0.22);
+  --input-border-active: #c12a50;
+  --input-placeholder-text-default: rgba(200, 208, 228, 0.6);
+
+  --button-secondary-background: rgba(18, 23, 40, 0.6);
+  --button-secondary-background-hover: rgba(28, 34, 58, 0.7);
+  --button-secondary-text: #f2f4fa;
+  --button-primary-background: #9e1738;
+  --button-primary-background-hover: #b21d42;
+  --control-primary-background-default: #9e1738;
+  --control-primary-background-hover: #b21d42;
+  --control-primary-background-active: #8a1330;
+  --control-secondary-background-default: rgba(18, 23, 40, 0.6);
+  --control-secondary-background-hover: rgba(28, 34, 58, 0.7);
+  --control-brand-foreground: #e87a97;
+  --control-brand-foreground-hover: #f09ab0;
+
+  --brand-360: #e87a97;
+  --brand-400: #d9486c;
+  --brand-430: #c12a50;
+  --brand-460: #c12a50;
+  --text-brand: #e87a97;
+  --redesign-button-primary-background: #9e1738;
+  --redesign-button-primary-background-hover: #b21d42;
+  --redesign-button-primary-pressed-background: #8a1330;
+  --bg-brand: #9e1738;
+  --border-brand: #c12a50;
+}
+
+/* Brand tokens are forced: client themes and plugins can set these inline */
+:root {
+  --brand-500: #9e1738 !important;
+  --brand-530: #9e1738 !important;
+  --brand-560: #8a1330 !important;
+  --brand-experiment: #9e1738 !important;
+  --control-primary-background-default: #9e1738 !important;
+  --control-brand-foreground: #e87a97 !important;
+  --text-link: #e87a97 !important;
+}
+
+/* Text inputs – every textbox stays dark glass (no !important: element
+   selectors outrank Discord's single-class rules) */
+input[type="text"],
+input[type="search"],
+input[type="password"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+textarea,
+[class*="inputDefault-"] {
+  background-color: var(--input-background);
+  color: var(--text-normal);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder-text-default);
+}
+
 /* ================================
    2. Global canvas – vignette
    ================================ */
@@ -98,7 +183,7 @@ body,
   font-family: var(--app-font);
 }
 
-/* Softer vignette – avoids “circle” window */
+/* Liquid glass backdrop – tint, specular highlight, caustics, refraction */
 #app-mount::before {
   content: "";
   position: fixed;
@@ -106,10 +191,29 @@ body,
   pointer-events: none;
   background:
     var(--noise) center / 320px repeat,
-    radial-gradient(circle at 0% 0%, rgba(158, 23, 56, 0.16), transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(0, 0, 0, 0.6), transparent 65%);
-  mix-blend-mode: soft-light;
-  opacity: 0.5;
+    radial-gradient(120% 70% at 0% 0%, rgba(255, 255, 255, 0.12), transparent 55%),
+    radial-gradient(60% 50% at 100% 0%, rgba(158, 23, 56, 0.16), transparent 70%),
+    linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.05) 45%, transparent 60%),
+    radial-gradient(circle at 100% 100%, rgba(0, 0, 0, 0.55), transparent 65%),
+    linear-gradient(180deg, rgba(14, 18, 32, 0.3), rgba(8, 11, 22, 0.5));
+  backdrop-filter: blur(var(--app-blur)) saturate(var(--lg-saturation))
+    brightness(var(--lg-brightness));
+  -webkit-backdrop-filter: blur(var(--app-blur)) saturate(var(--lg-saturation))
+    brightness(var(--lg-brightness));
+  z-index: -1;
+}
+
+/* Glass rim light on the window edge */
+#app-mount::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+    inset 0 0 48px rgba(255, 255, 255, 0.03);
   z-index: -1;
 }
 
@@ -417,7 +521,7 @@ main[role="main"] [role="tablist"] [role="tab"]:hover {
   margin-inline: 8px;
 }
 
-[class*="mentioned-"] {
+[class*="mentioned"] {
   background: rgba(158, 23, 56, 0.14) !important;
   box-shadow:
     0 0 0 1px rgba(193, 42, 80, 0.7),
@@ -470,7 +574,7 @@ button:hover,
 }
 
 /* Primary (brand) buttons – solid crimson */
-[class*="lookFilled-"][class*="colorBrand"] {
+#app-mount [class*="lookFilled"][class*="colorBrand"] {
   background: linear-gradient(145deg, var(--rj-accent-2), var(--rj-accent)) !important;
   border-color: rgba(193, 42, 80, 0.6);
 }
@@ -517,7 +621,7 @@ button:hover,
    ================================ */
 
 /* Unified search styling (DM + channel + friends) */
-#app-mount [class*="searchBar-"] {
+#app-mount [class*="searchBar"] {
   background:
     radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.06), transparent 55%),
     rgba(14, 18, 32, 0.94) !important;
@@ -531,7 +635,7 @@ button:hover,
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-#app-mount [class*="searchBar-"]:focus-within {
+#app-mount [class*="searchBar"]:focus-within {
   border-color: var(--rj-accent-2);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.1),
@@ -539,25 +643,25 @@ button:hover,
     0 0 14px var(--rj-accent-glow);
 }
 
-#app-mount [class*="searchBar-"] > div {
+#app-mount [class*="searchBar"] > div {
   background: transparent !important;
   border-radius: inherit !important;
 }
 
-#app-mount [class*="searchBar-"] input {
+#app-mount [class*="searchBar"] input {
   background: transparent !important;
   color: var(--text-normal) !important;
   font-weight: 600;
   text-shadow: 0 0 1px rgba(0, 0, 0, 0.9) !important;
 }
 
-#app-mount [class*="searchBar-"] input::placeholder {
+#app-mount [class*="searchBar"] input::placeholder {
   color: rgba(200, 208, 228, 0.75) !important;
   text-shadow: none !important;
 }
 
-#app-mount [class*="searchBar-"] svg,
-#app-mount [class*="searchBar-"] span {
+#app-mount [class*="searchBar"] svg,
+#app-mount [class*="searchBar"] span {
   filter: none !important;
 }
 
