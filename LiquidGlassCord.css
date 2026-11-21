@@ -1,0 +1,541 @@
+/**
+ * @name Liquid Glasscord
+ * @version 9.3
+ * @description App-wide Liquid Glass using Translucence as blur engine, with Tahoe-style refraction and full Discord variable bridge.
+ * @author Kusanaliee
+ * @source https://capnkitten.github.io/BetterDiscord/Themes/Translucence/
+ */
+
+@import url("https://capnkitten.github.io/BetterDiscord/Themes/Translucence/css/source.css");
+
+/* ================================
+   1. Tahoe core – variables
+   ================================ */
+
+:root {
+  --app-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui,
+    sans-serif;
+
+  --app-bg: transparent !important;
+  --app-blur: 55px;
+  --app-radius: 26px;
+  --app-margin: 16px;
+
+  /* Glass tints (dark blue Tahoe-ish) */
+  --sidebar-color: rgba(15, 20, 40, 0.75);
+  --main-content-color: rgba(10, 15, 35, 0.78);
+  --card-color: rgba(5, 10, 30, 0.8);
+  --card-color-hover: rgba(15, 20, 45, 0.85);
+  --popout-color: rgba(5, 10, 30, 0.82);
+  --message-color: rgba(10, 15, 35, 0.75);
+  --textarea-alpha: 0.7;
+  --accent-text-color: #ffffff;
+
+  /* “Liquid” refraction tuning */
+  --lg-saturation: 230%;
+  --lg-brightness: 135%;
+
+  /* Micro-noise + shine */
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='5'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0.1 0.3 0.5 0.7 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+  --shine: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 100%);
+
+  /* Discord token bridge */
+  --background-primary: rgba(10, 15, 35, 0.82);
+  --background-secondary: rgba(15, 20, 45, 0.8);
+  --background-tertiary: rgba(5, 10, 30, 0.86);
+  --background-accent: rgba(255, 255, 255, 0.12);
+  --background-floating: rgba(5, 10, 30, 0.88);
+
+  --channeltextarea-background: rgba(0, 0, 0, 0.55);
+  --modal-background: rgba(5, 10, 30, 0.88);
+  --modal-footer-background: rgba(3, 6, 18, 0.96);
+
+  --card-primary-bg: rgba(5, 10, 30, 0.82);
+  --card-secondary-bg: rgba(10, 15, 35, 0.82);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  --header-primary: #f8fbff;
+  --header-secondary: rgba(235, 240, 255, 0.75);
+  --text-normal: #f5f7ff;
+  --text-muted: rgba(210, 220, 245, 0.65);
+}
+
+.theme-dark {
+  --background-primary: rgba(10, 15, 35, 0.82);
+  --background-secondary: rgba(15, 20, 45, 0.8);
+  --background-tertiary: rgba(5, 10, 30, 0.86);
+  --background-floating: rgba(5, 10, 30, 0.88);
+  --channeltextarea-background: rgba(0, 0, 0, 0.55);
+}
+
+/* ================================
+   2. Global canvas – vignette
+   ================================ */
+
+body,
+#app-mount {
+  background: transparent !important;
+  font-family: var(--app-font);
+}
+
+/* Softer vignette – avoids “circle” window */
+#app-mount::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    var(--noise) center / 320px repeat,
+    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.2), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(0, 0, 0, 0.7), transparent 65%);
+  mix-blend-mode: soft-light;
+  opacity: 0.55;
+  z-index: -1;
+}
+
+/* ================================
+   3. App-wide blur + refraction
+   ================================ */
+
+[class^="app-"],
+[class^="appMount-"],
+[class^="bg-"],
+[class^="layers-"],
+[class*="layer-"],
+[class*="baseLayer-"],
+[class*="chat-"],
+[class*="membersWrap-"],
+[class*="standardSidebarView-"],
+[class*="guilds-"],
+[class*="guildsWrapper"],
+[class*="menu-"],
+[class*="root-"],
+[class*="modal-"],
+[class*="userPopout-"],
+[class*="tooltip-"],
+[class*="messagesPopoutWrap-"],
+[class*="autocomplete-"],
+[class*="browser-"] {
+  backdrop-filter: blur(var(--app-blur)) saturate(var(--lg-saturation))
+    brightness(var(--lg-brightness)) !important;
+  -webkit-backdrop-filter: blur(var(--app-blur)) saturate(var(--lg-saturation))
+    brightness(var(--lg-brightness)) !important;
+}
+
+/* ================================
+   4. Primary panels
+   ================================ */
+
+/* Left: channels / DM sidebar */
+[class*="sidebar-"] {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+  border-radius: var(--app-radius);
+  border: 1px solid var(--border-subtle);
+  box-shadow:
+    inset 0 0 6px rgba(255, 255, 255, 0.22),
+    0 18px 55px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
+  margin: 10px 6px 10px 10px;
+  overflow: hidden;
+}
+
+/* Center: chat */
+[class^="chat-"],
+[class*="chatContent-"] {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+  border-radius: var(--app-radius);
+  border: 1px solid var(--border-subtle);
+  box-shadow:
+    inset 0 0 6px rgba(255, 255, 255, 0.22),
+    0 18px 55px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
+  margin: 10px 6px;
+  overflow: hidden;
+}
+
+/* Right: member list */
+[class*="membersWrap-"] {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+  border-radius: var(--app-radius);
+  border: 1px solid var(--border-subtle);
+  box-shadow:
+    inset 0 0 6px rgba(255, 255, 255, 0.22),
+    0 18px 55px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
+  margin: 10px 10px 10px 6px;
+  overflow: hidden;
+}
+
+/* Settings, popouts, modals, context menus, tooltips */
+[class*="standardSidebarView-"] [class*="sidebarRegion-"],
+[class*="standardSidebarView-"] [class*="contentRegion-"],
+[class*="menu-"],
+[class*="root-"],
+[class*="modal-"],
+[class*="userPopout-"],
+[class*="searchResultsWrap-"],
+[class*="messagesPopoutWrap-"],
+[class*="autocomplete-"],
+[class*="browser-"],
+[class*="tooltip-"] {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+  border-radius: var(--app-radius);
+  border: 1px solid var(--border-subtle);
+  box-shadow:
+    inset 0 0 6px rgba(255, 255, 255, 0.22),
+    0 22px 60px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 0, 0, 0.16);
+}
+
+/* ================================
+   5. Guilds bar & folders
+   ================================ */
+
+/* Whole server list column */
+nav[aria-label="Servers"],
+nav[aria-label="Servers"] > div {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* Folder shells */
+[class^="folder-"],
+[class^="expandedFolderBackground-"],
+[class^="folderIconWrapper-"] {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(255, 255, 255, 0.12) !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(30px) saturate(240%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(240%) !important;
+  box-shadow:
+    inset 0 1px 4px rgba(255, 255, 255, 0.55),
+    0 6px 18px rgba(0, 0, 0, 0.7);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[class^="folder-"]:hover,
+[class^="expandedFolderBackground-"]:hover {
+  transform: scale(1.06);
+  box-shadow:
+    inset 0 1px 4px rgba(255, 255, 255, 0.65),
+    0 10px 26px rgba(0, 0, 0, 0.8);
+}
+
+/* Glassy pills for every server / folder / add button */
+nav[aria-label="Servers"] [role="treeitem"] > div,
+nav[aria-label="Servers"] [role="treeitem"] > a {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.24) !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(28px) saturate(220%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(220%) !important;
+  box-shadow:
+    inset 0 1px 3px rgba(255, 255, 255, 0.45),
+    0 8px 20px rgba(0, 0, 0, 0.65);
+}
+
+/* Selected server/folder – a bit brighter */
+nav[aria-label="Servers"] [role="treeitem"] [aria-current="page"],
+nav[aria-label="Servers"] [role="treeitem"][aria-selected="true"] > div {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.32), transparent 60%),
+    var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.3) !important;
+}
+
+/* ================================
+   6. Pages – Friends, Settings, Active Now
+   ================================ */
+
+/* Blur consistency for page-style regions */
+[class*="sidebarRegion-"],
+[class*="contentRegion-"],
+[class*="contentRegionScroller-"],
+[class*="pageWrapper-"] {
+  backdrop-filter: blur(var(--app-blur)) saturate(var(--lg-saturation))
+    brightness(var(--lg-brightness)) !important;
+  -webkit-backdrop-filter: blur(var(--app-blur)) saturate(var(--lg-saturation))
+    brightness(var(--lg-brightness)) !important;
+}
+
+/* Friends list main column */
+[class*="peopleColumn-"],
+[class*="peopleList-"],
+main[role="main"] [class*="container-"][class*="people"] {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+  border-radius: var(--app-radius);
+  border: 1px solid var(--border-subtle);
+  box-shadow:
+    inset 0 0 6px rgba(255, 255, 255, 0.22),
+    0 18px 55px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+/* Active Now sidebar on Friends page */
+section[aria-label="Active Now"],
+section[aria-label="Active Now"] > div {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+  border-radius: var(--app-radius);
+  border: 1px solid var(--border-subtle);
+  box-shadow:
+    inset 0 0 6px rgba(255, 255, 255, 0.22),
+    0 18px 55px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+/* Settings right pane body */
+[class*="standardSidebarView-"] [class*="contentColumn-"],
+[class*="standardSidebarView-"] main[role="main"] {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+}
+
+/* Settings left nav column */
+[class*="standardSidebarView-"] [class*="sidebarRegionScroller-"] {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 5, 25, 0.18) !important;
+}
+
+/* Settings nav items */
+[class*="standardSidebarView-"] [class*="sidebarRegionScroller-"] [role="tab"] {
+  border-radius: 999px !important;
+  padding-inline: 10px;
+}
+
+/* Selected + hover states */
+[class*="standardSidebarView-"]
+  [class*="sidebarRegionScroller-"]
+  [role="tab"][aria-selected="true"],
+[class*="standardSidebarView-"]
+  [class*="sidebarRegionScroller-"]
+  [role="tab"]:hover {
+  background:
+    radial-gradient(circle at 0% 50%, rgba(255, 255, 255, 0.24), transparent 60%),
+    rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Security / Standing pills */
+main[role="main"] [role="tablist"] [role="tab"] {
+  border-radius: 999px !important;
+}
+
+main[role="main"] [role="tablist"] [role="tab"][aria-selected="true"],
+main[role="main"] [role="tablist"] [role="tab"]:hover {
+  background:
+    radial-gradient(circle at 0% 50%, rgba(255, 255, 255, 0.26), transparent 60%),
+    rgba(255, 255, 255, 0.06) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.35),
+    0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+/* ================================
+   7. Channels / DM rows
+   ================================ */
+
+[class*="sidebar-"] [role="treeitem"] [class*="content-"],
+[class*="sidebar-"] [role="treeitem"] [class*="link-"],
+[class*="sidebar-"] [role="treeitem"] [class*="interactive-"] {
+  border-radius: 999px !important;
+}
+
+/* Hover / selected DM or channel row */
+[class*="sidebar-"] [role="treeitem"] [class*="selected-"],
+[class*="sidebar-"] [role="treeitem"] [class*="interactive-"]:hover {
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.38),
+    0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+/* ================================
+   8. Chat input – pill glass
+   ================================ */
+
+[class*="channelTextArea-"] [class*="scrollableContainer-"] {
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--shine), var(--noise) center / 320px repeat,
+    rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+/* ================================
+   9. Messages – subtle glass bubbles
+   ================================ */
+
+[class^="message-"],
+[class*="message-"] {
+  background: rgba(5, 10, 30, 0.65) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.45),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  margin-inline: 8px;
+}
+
+[class*="mentioned-"] {
+  box-shadow:
+    0 0 0 1px rgba(180, 210, 255, 0.8),
+    0 0 24px rgba(150, 190, 255, 0.55);
+}
+
+.markup-2BOw-j,
+[class*="messageContent-"] {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* ================================
+   10. Buttons & icons – glass pills
+   ================================ */
+
+button,
+[class*="button-"],
+[class*="lookFilled-"],
+.circleIconButton-1QV9gB {
+  background:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.45), transparent 40%),
+    radial-gradient(circle at bottom, rgba(255, 255, 255, 0.18), transparent 60%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.25), rgba(200, 220, 255, 0.1)),
+    rgba(255, 255, 255, 0.08) !important;
+  color: var(--accent-text-color) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.45),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(200, 220, 255, 0.35);
+  border-radius: 999px !important;
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  transition: all 0.25s ease;
+}
+
+button:hover,
+[class*="button-"]:hover,
+[class*="lookFilled-"]:hover,
+.circleIconButton-1QV9gB:hover {
+  background:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.55), transparent 40%),
+    radial-gradient(circle at bottom, rgba(255, 255, 255, 0.25), transparent 60%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.32), rgba(200, 220, 255, 0.15)),
+    rgba(255, 255, 255, 0.12) !important;
+  filter: brightness(1.15) saturate(1.25);
+  transform: scale(1.04);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.2),
+    0 10px 28px rgba(200, 220, 255, 0.45);
+}
+
+/* Neutral / grey variant */
+[class*="lookFilled-"].colorGrey-2DXtkV {
+  background:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.3), transparent 40%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(180, 200, 220, 0.05)),
+    rgba(20, 25, 45, 0.45) !important;
+  color: #f2f6ff !important;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.22),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1),
+    0 4px 14px rgba(0, 0, 0, 0.7);
+}
+
+/* ================================
+   11. Misc polish
+   ================================ */
+
+[class*="avatar-"],
+[class*="wrapper-"][class*="avatarContainer"],
+.topPill-30KHOu .item-2GWPIy {
+  border-radius: var(--app-radius) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.35), transparent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.25), rgba(200, 220, 255, 0.3));
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+/* macOS-style transparent base */
+.platform-osx [class^="layers-"],
+.platform-osx [class*="baseLayer-"] {
+  background: transparent !important;
+}
+
+/* ================================
+   12. Search fields & title bar
+   ================================ */
+
+/* Unified search styling (DM + channel + friends) */
+#app-mount [class*="searchBar-"] {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.2), transparent 55%),
+    rgba(22, 26, 42, 0.97) !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  backdrop-filter: blur(10px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(130%) !important;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    0 6px 18px rgba(0, 0, 0, 0.75);
+}
+
+#app-mount [class*="searchBar-"] > div {
+  background: transparent !important;
+  border-radius: inherit !important;
+}
+
+#app-mount [class*="searchBar-"] input {
+  background: transparent !important;
+  color: #fdfdff !important;
+  font-weight: 600;
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.9) !important;
+}
+
+#app-mount [class*="searchBar-"] input::placeholder {
+  color: rgba(235, 240, 255, 0.95) !important;
+  text-shadow: none !important;
+}
+
+#app-mount [class*="searchBar-"] svg,
+#app-mount [class*="searchBar-"] span {
+  filter: none !important;
+}
+
+/* Title bar (macOS style) */
+#app-mount [class*="typeMacOS-"],
+#app-mount [class*="titleBar-"] {
+  background: linear-gradient(
+      180deg,
+      rgba(246, 247, 252, 0.98),
+      rgba(212, 216, 228, 0.98)
+    ) !important;
+  backdrop-filter: blur(18px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(120%) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9),
+    0 -1px 0 rgba(0, 0, 0, 0.55);
+}
+
+#app-mount [class*="typeMacOS-"] *,
+#app-mount [class*="titleBar-"] * {
+  color: rgba(40, 45, 60, 0.96) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
